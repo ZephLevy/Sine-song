@@ -26,3 +26,6 @@ go.work.sum
 
 # Don't need to push this
 song.wav
+
+# I just adore macos
+.DS_Store
