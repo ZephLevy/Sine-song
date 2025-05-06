@@ -10,7 +10,7 @@ import (
 const (
 	sampleRate     = 44100
 	duration       = 1.0
-	numChannels    = 1 // Stereo
+	numChannels    = 1 // Mono
 	bitsPerSample  = 16
 	bytesPerSample = bitsPerSample / 8
 	numSamples     = int(sampleRate * duration)
