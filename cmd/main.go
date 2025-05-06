@@ -37,13 +37,11 @@ func main() {
 		panic(err)
 	}
 	defer file.Close()
-	tempFile, err := os.Create("temp")
-	if err != nil {
-		panic(err)
-	}
-	defer os.Remove("temp")
 
-	fileBuffer := bufio.NewWriter(tempFile)
+	// This reserves enough space for the headers
+	file.Write(make([]byte, 44))
+
+	fileBuffer := bufio.NewWriter(file)
 	writer := &countingBuffer{writer: fileBuffer}
 
 	// --- Audio Samples ---
@@ -53,14 +51,10 @@ func main() {
 		frequency = (float64(i) / float64(numSamples)) * (20000.0 / 20.0)
 	}
 	writer.writer.Flush()
-	tempFile.Close()
-	writeHeaders(file, writer.totalSize)
-	contents, err := os.ReadFile("temp")
-	if err != nil {
-		panic("Could not read contents")
-	}
-	file.Write(contents)
 
+	// Go to start of file and write headers
+	file.Seek(0, 0)
+	writeHeaders(file, writer.totalSize)
 }
 
 func writeHeaders(file *os.File, dataSize int) {
