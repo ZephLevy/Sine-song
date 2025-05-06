@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/binary"
 	"math"
 	"os"
@@ -15,9 +16,18 @@ const (
 	numSamples     = int(sampleRate * duration)
 	byteRate       = sampleRate * numChannels * bytesPerSample
 	blockAlign     = numChannels * bytesPerSample
-	dataSize       = numSamples * numChannels * bytesPerSample
-	chunkSize      = 36 + dataSize
 )
+
+type countingBuffer struct {
+	totalSize int
+	writer    *bufio.Writer
+}
+
+func (buffer *countingBuffer) Write(samples []byte) (int, error) {
+	n, err := buffer.writer.Write(samples)
+	buffer.totalSize += n
+	return n, err
+}
 
 func main() {
 	frequency := 20.0
@@ -27,20 +37,35 @@ func main() {
 		panic(err)
 	}
 	defer file.Close()
+	tempFile, err := os.Create("temp")
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove("temp")
 
-	writeHeaders(file)
+	fileBuffer := bufio.NewWriter(tempFile)
+	writer := &countingBuffer{writer: fileBuffer}
 
 	// --- Audio Samples ---
 	for i := range numSamples {
 		sample := int16(math.Sin(2*math.Pi*frequency*float64(i)/sampleRate) * 32767)
-		binary.Write(file, binary.LittleEndian, sample)
+		binary.Write(writer, binary.LittleEndian, sample)
 		frequency = (float64(i) / float64(numSamples)) * (20000.0 / 20.0)
 	}
+	writer.writer.Flush()
+	tempFile.Close()
+	writeHeaders(file, writer.totalSize)
+	contents, err := os.ReadFile("temp")
+	if err != nil {
+		panic("Could not read contents")
+	}
+	file.Write(contents)
+
 }
 
-func writeHeaders(file *os.File) {
+func writeHeaders(file *os.File, dataSize int) {
 	file.Write([]byte("RIFF"))
-	binary.Write(file, binary.LittleEndian, uint32(chunkSize))
+	binary.Write(file, binary.LittleEndian, uint32(dataSize+36))
 	file.Write([]byte("WAVE"))
 
 	// --- fmt subchunk ---
