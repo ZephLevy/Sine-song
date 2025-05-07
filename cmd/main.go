@@ -41,6 +41,11 @@ func main() {
 	fileBuffer := bufio.NewWriter(file)
 	writer := &countingBuffer{writer: fileBuffer}
 
+	for i := range 2 * sampleRate {
+		_ = i
+		binary.Write(writer, binary.LittleEndian, int16(0))
+	}
+
 	samples := songgenerator.GetSong(sampleRate)
 	for _, sample := range samples {
 		binary.Write(writer, binary.LittleEndian, sample)
