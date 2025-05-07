@@ -41,8 +41,7 @@ func main() {
 	fileBuffer := bufio.NewWriter(file)
 	writer := &countingBuffer{writer: fileBuffer}
 
-	for i := range 2 * sampleRate {
-		_ = i
+	for range 2 * sampleRate {
 		binary.Write(writer, binary.LittleEndian, int16(0))
 	}
 
