@@ -23,6 +23,9 @@ var noteToSemitone = map[string]int{
 }
 
 func getFrequency(note string) (float64, error) {
+	if strings.ToLower(note) == "rest" {
+		return 0.0, nil
+	}
 	note = strings.TrimSpace(strings.ToUpper(note))
 
 	var name string
