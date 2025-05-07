@@ -3,17 +3,16 @@ package main
 import (
 	"bufio"
 	"encoding/binary"
-	"math"
 	"os"
+
+	"github.com/ZephLevy/Sine-song/internal/songgenerator"
 )
 
 const (
 	sampleRate     = 44100
-	duration       = 1.0
 	numChannels    = 1 // Mono
 	bitsPerSample  = 16
 	bytesPerSample = bitsPerSample / 8
-	numSamples     = int(sampleRate * duration)
 	byteRate       = sampleRate * numChannels * bytesPerSample
 	blockAlign     = numChannels * bytesPerSample
 )
@@ -30,8 +29,6 @@ func (buffer *countingBuffer) Write(samples []byte) (int, error) {
 }
 
 func main() {
-	frequency := 20.0
-
 	file, err := os.Create("song.wav")
 	if err != nil {
 		panic(err)
@@ -44,11 +41,9 @@ func main() {
 	fileBuffer := bufio.NewWriter(file)
 	writer := &countingBuffer{writer: fileBuffer}
 
-	// --- Audio Samples ---
-	for i := range numSamples {
-		sample := int16(math.Sin(2*math.Pi*frequency*float64(i)/sampleRate) * 32767)
+	samples := songgenerator.GetSong(sampleRate)
+	for _, sample := range samples {
 		binary.Write(writer, binary.LittleEndian, sample)
-		frequency = (float64(i) / float64(numSamples)) * (20000.0 / 20.0)
 	}
 	writer.writer.Flush()
 
