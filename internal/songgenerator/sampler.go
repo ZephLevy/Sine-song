@@ -10,14 +10,19 @@ func getSamples(notes []note, sampleRate float64) []int16 {
 	var phase float64
 
 	for _, note := range notes {
-		frequency, err := getFrequency(note.name)
-		if err != nil {
-			// Assume a typo or smth equivalent
-			// Still, I'm printing to let the user know
-			log.Println("Error getting frequency:", err)
-			continue
+		var frequency float64
+		if note.name == "" {
+			frequency = note.frequency
+		} else {
+			var err error
+			frequency, err = getFrequency(note.name)
+			if err != nil {
+				// Assume a typo or smth equivalent
+				// Still, I'm printing to let the user know
+				log.Println("Error getting frequency:", err)
+				continue
+			}
 		}
-
 		// What happens when we just use i is that
 		// when the note changes, it made a popping sound.
 		// This was because i got reset for each note,
@@ -26,17 +31,19 @@ func getSamples(notes []note, sampleRate float64) []int16 {
 		// Here, we use a phase variable to keep track of it between notes
 
 		numSamples := int(note.duration * sampleRate)
-		phaseIncrement := 2.0 * math.Pi * frequency / sampleRate
 
-		// This helps fix popping when volume changes
-		// It does not work when the volume change is too large.
-		// Solution? Don't make large volume shifts.
-		multiplier := 1.0
-		for range numSamples {
-			if phase == 0 {
-				multiplier = note.volume
+		for i := range numSamples {
+			t := float64(i) / float64(numSamples)
+			var currentFreq float64
+
+			if note.frequencyEnd != nil {
+				currentFreq = (1.0-t)*frequency + t*(*note.frequencyEnd)
+			} else {
+				currentFreq = frequency
 			}
-			sample := int16(math.Sin(phase) * (32767 / 3) * multiplier)
+
+			phaseIncrement := 2.0 * math.Pi * currentFreq / sampleRate
+			sample := int16(math.Sin(phase) * (32767 / 3) * note.volume)
 			samples = append(samples, sample)
 			phase += phaseIncrement
 
