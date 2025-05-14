@@ -28,8 +28,15 @@ func getSamples(notes []note, sampleRate float64) []int16 {
 		numSamples := int(note.duration * sampleRate)
 		phaseIncrement := 2.0 * math.Pi * frequency / sampleRate
 
+		// This helps fix popping when volume changes
+		// It does not work when the volume change is too large.
+		// Solution? Don't make large volume shifts.
+		multiplier := 1.0
 		for range numSamples {
-			sample := int16(math.Sin(phase) * (32767 / 3))
+			if phase == 0 {
+				multiplier = note.volume
+			}
+			sample := int16(math.Sin(phase) * (32767 / 3) * multiplier)
 			samples = append(samples, sample)
 			phase += phaseIncrement
 
