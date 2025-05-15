@@ -43,7 +43,7 @@ func getSamples(notes []note, sampleRate float64) []int16 {
 			}
 
 			phaseIncrement := 2.0 * math.Pi * currentFreq / sampleRate
-			sample := int16(math.Sin(phase) * (32767 / 3) * note.volume)
+			sample := int16(math.Sin(phase) * (32767 / 4) * note.volume)
 			samples = append(samples, sample)
 			phase += phaseIncrement
 
