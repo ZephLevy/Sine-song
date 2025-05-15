@@ -7,8 +7,14 @@ import (
 
 func getSamples(notes []note, sampleRate float64) []int16 {
 	var samples []int16
-	var phase float64
 
+	// What happens when we just use i and reset it for each note is that
+	// when the note changes, it made a popping sound.
+	// This was because i got reset for each note,
+	// so a peak in one note could abruptly change to a
+	// trough.
+	// Here, we use a phase variable to keep track of it between notes
+	var phase float64
 	for _, note := range notes {
 		var frequency float64
 		if note.name == "" {
@@ -23,12 +29,6 @@ func getSamples(notes []note, sampleRate float64) []int16 {
 				continue
 			}
 		}
-		// What happens when we just use i is that
-		// when the note changes, it made a popping sound.
-		// This was because i got reset for each note,
-		// so a peak in one note could abruptly change to a
-		// trough.
-		// Here, we use a phase variable to keep track of it between notes
 
 		numSamples := int(note.duration * sampleRate)
 
