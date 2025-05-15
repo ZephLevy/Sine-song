@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func getSamples(notes []note, sampleRate float64) []int16 {
+func getSamples(notes []note, sampleRate float64, voiceCount float64) []int16 {
 	var samples []int16
 
 	// What happens when we just use i and reset it for each note is that
@@ -43,7 +43,7 @@ func getSamples(notes []note, sampleRate float64) []int16 {
 			}
 
 			phaseIncrement := 2.0 * math.Pi * currentFreq / sampleRate
-			sample := int16(math.Sin(phase) * (32767 / 4) * note.volume)
+			sample := int16(math.Sin(phase) * (32767 / voiceCount) * note.volume)
 			samples = append(samples, sample)
 			phase += phaseIncrement
 
