@@ -108,14 +108,57 @@ func chordProgression(sampleRate float64, voiceCount float64, octave int) []int1
 func mainLoops(sampleRate float64) []int16 {
 	volume := 0.5
 	var notes []note
-	noteNames := []string{"C4", "E4", "G4", "B4", "C5", "B4", "G4", "E4"}
-	for i := range 4 * len(noteNames) {
-		notes = append(notes, note{
-			volume:   volume,
-			duration: 1.0 / 8.0,
-			name:     noteNames[i%len(noteNames)],
-		})
-	}
+
+	// C7 arpeggio
+	func() {
+		noteNames := []string{"C4", "E4", "G4", "B4", "C5", "B4", "G4", "E4"}
+		for i := range 4 * len(noteNames) {
+			notes = append(notes, note{
+				volume:   volume,
+				duration: 1.0 / 8.0,
+				name:     noteNames[i%len(noteNames)],
+			})
+		}
+		notes = append(notes, lerpNote(3.0, volume, noteNames[0], "D4"))
+	}()
+
+	// Db7♭5 arpeggio
+	func() {
+		noteNames := []string{"Db4", "F4", "Gb4", "Bb4", "Db5", "Bb4", "Gb4", "F4"}
+		for i := range 4 * len(noteNames) {
+			notes = append(notes, note{
+				volume:   volume + 0.15,
+				duration: 1.0 / 8.0,
+				name:     noteNames[i%len(noteNames)],
+			})
+		}
+		notes = append(notes, lerpNote(3.0, volume, noteNames[0], "D#4"))
+	}()
+
+	// Bdim arpeggio
+	func() {
+		noteNames := []string{"D4", "F4", "B4", "D5", "F5", "D5", "B4", "F4"}
+		for i := range 4 * len(noteNames) {
+			notes = append(notes, note{
+				volume:   volume + 0.3,
+				duration: 1.0 / 8.0,
+				name:     noteNames[i%len(noteNames)],
+			})
+		}
+		notes = append(notes, lerpNote(3.0, volume, noteNames[0], "C4"))
+	}()
+
+	func() {
+		noteNames := []string{"C#4", "F#4", "A#4", "C#5", "F#5", "C#5", "A#4", "F#4"}
+		for i := range 4 * len(noteNames) {
+			notes = append(notes, note{
+				volume:   volume + 0.3,
+				duration: 1.0 / 8.0,
+				name:     noteNames[i%len(noteNames)],
+			})
+		}
+		notes = append(notes, lerpNote(3.0, volume, noteNames[0], "B3"))
+	}()
 	samples := getSamples(notes, sampleRate, 5)
 	return samples
 }
