@@ -22,7 +22,6 @@ func GetSong(sampleRate float64) []int16 {
 		}
 		samples = append(samples, mainLoop[i]+background[i])
 	}
-	samples = append(samples, mainLoop...)
 	return samples
 }
 
@@ -86,6 +85,13 @@ func chordProgression(sampleRate float64, voiceCount float64, octave int) []int1
 		{duration: 4, volume: initialVolume, name: n("B")},
 		lerpNote(3, initialVolume, n("B"), n("A#")),
 		{duration: 4, volume: initialVolume, name: n("A#")},
+	}
+	// Intro
+	if octave == 4 {
+		voice1 = append(voice1, lerpNote(1, initialVolume, "C#4", "C#3"))
+		voice2 = append(voice2, lerpNote(1, initialVolume, "F#4", "F#3"))
+		voice3 = append(voice3, lerpNote(1, initialVolume, "F#4", "F#3"))
+		voice4 = append(voice4, lerpNote(1, initialVolume, "A#4", "A#3"))
 	}
 
 	samples1 := getSamples(voice1, sampleRate, voiceCount)
