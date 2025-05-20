@@ -14,7 +14,7 @@ func GetSong(sampleRate float64) []int16 {
 	var samples []int16
 	samples = append(samples, chordProgression(sampleRate, 4, 4)...)
 	background := chordProgression(sampleRate, 5, 3)
-	mainLoop := mainLoops(sampleRate)
+	mainLoop := mainLoops(sampleRate, 5)
 	for i := range background {
 		if i >= len(mainLoop) {
 			samples = append(samples, background[i])
@@ -94,10 +94,10 @@ func chordProgression(sampleRate float64, voiceCount float64, octave int) []int1
 		voice4 = append(voice4, lerpNote(1, initialVolume, "A#4", "A#3"))
 	}
 
-	samples1 := getSamples(voice1, sampleRate, voiceCount)
-	samples2 := getSamples(voice2, sampleRate, voiceCount)
-	samples3 := getSamples(voice3, sampleRate, voiceCount)
-	samples4 := getSamples(voice4, sampleRate, voiceCount)
+	samples1 := getSamples(voice1, sampleRate, voiceCount, sineWave)
+	samples2 := getSamples(voice2, sampleRate, voiceCount, sineWave)
+	samples3 := getSamples(voice3, sampleRate, voiceCount, sineWave)
+	samples4 := getSamples(voice4, sampleRate, voiceCount, sineWave)
 
 	var samples []int16
 	for i := range samples1 {
@@ -105,7 +105,7 @@ func chordProgression(sampleRate float64, voiceCount float64, octave int) []int1
 	}
 	return samples
 }
-func mainLoops(sampleRate float64) []int16 {
+func mainLoops(sampleRate float64, voiceCount float64) []int16 {
 	volume := 0.5
 	var notes []note
 
@@ -159,6 +159,6 @@ func mainLoops(sampleRate float64) []int16 {
 		}
 		notes = append(notes, lerpNote(3.0, volume, noteNames[0], "B3"))
 	}()
-	samples := getSamples(notes, sampleRate, 5)
+	samples := getSamples(notes, sampleRate, voiceCount, sineWave)
 	return samples
 }
