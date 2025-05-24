@@ -71,15 +71,23 @@ func getSamples(notes []note, sampleRate float64, wave waveformFunc) []int {
 
 func normalize(samples [][]int) []int16 {
 	var result []int16
-	mixed := make([]int, len(samples[0]))
 
-	for i := range mixed {
-		for _, track := range samples {
-			mixed[i] += track[i]
+	maxLen := 0
+	for _, track := range samples {
+		if len(track) > maxLen {
+			maxLen = len(track)
 		}
 	}
 
-	// Find max absolute sample
+	mixed := make([]int, maxLen)
+	for i := range maxLen {
+		for _, track := range samples {
+			if i < len(track) {
+				mixed[i] += track[i]
+			}
+		}
+	}
+
 	var maxAbs int
 	for _, s := range mixed {
 		if abs := int(math.Abs(float64(s))); abs > maxAbs {
@@ -87,7 +95,6 @@ func normalize(samples [][]int) []int16 {
 		}
 	}
 
-	// Normalize to int16 range
 	for _, s := range mixed {
 		normalized := float64(s) / float64(maxAbs) * 32767
 		result = append(result, int16(normalized))

@@ -27,9 +27,11 @@ func GetSong(sampleRate float64) []int16 {
 		background := chordProgression(sampleRate, 3)
 		mainLoop := mainLoops(sampleRate)
 		bass := bass(sampleRate)
-		things := normalize([][]int{background, mainLoop, bass})
-		samples = append(samples, things...)
+		sum := normalize([][]int{background, mainLoop, bass})
+		samples = append(samples, sum...)
 	}()
+
+	// TODO: Resolve the song
 
 	return samples
 }
@@ -167,22 +169,44 @@ func mainLoops(sampleRate float64) []int {
 				name:     noteNames[i%len(noteNames)],
 			})
 		}
-		notes = append(notes, lerpNote(3.0, volume, noteNames[0], "B3"))
 	}()
 	samples := getSamples(notes, sampleRate, sineWave)
 	return samples
 }
 
 func bass(sampleRate float64) []int {
-	notes := []note{
-		{duration: 4, volume: 0.1, name: "C3"},
-		lerpNote(3, 0.1, "C3", "Db3"),
-		{duration: 4, volume: 0.1, name: "Db3"},
-		lerpNote(3, 0.1, "Db3", "D3"),
-		{duration: 4, volume: 0.1, name: "D3"},
-		lerpNote(3, 0.1, "D3", "C#3"),
-		{duration: 4, volume: 0.1, name: "C#3"},
+	volume := 0.35
+	var notes []note
+
+	// For each chord root: include fifths, octaves, and approach tones
+	roots := []string{"C2", "Db2", "D2", "C#2"}
+	altNotes := [][]string{
+		{"G1", "C3", "Bb1"},  // for C
+		{"Ab1", "Db3", "B1"}, // for Db
+		{"A1", "D3", "C2"},   // for D
+		{"G#1", "F#3", "B1"}, // for C#
 	}
-	samples := getSamples(notes, sampleRate, sawtoothWave)
-	return samples
+
+	for i, root := range roots {
+		alts := altNotes[i]
+
+		// 4s: mix root, 5th, octave, approach
+		notes = append(notes,
+			note{duration: 0.5, volume: volume, name: root},
+			note{duration: 0.5, volume: volume * 0.9, name: alts[0]},
+			note{duration: 0.5, volume: volume * 0.85, name: alts[1]},
+			note{duration: 0.5, volume: volume * 0.8, name: root},
+			note{duration: 1.0, volume: volume * 0.75, name: alts[2]},
+			note{duration: 1.0, volume: volume, name: root},
+		)
+
+		// 3s lerp except final segment
+		if i < len(roots)-1 {
+			notes = append(notes,
+				lerpNote(3.0, volume*0.7, root, roots[i+1]),
+			)
+		}
+	}
+
+	return getSamples(notes, sampleRate, sawtoothWave)
 }
