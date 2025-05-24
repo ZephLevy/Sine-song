@@ -15,8 +15,8 @@ func sawtoothWave(phase float64) float64 {
 	return 2*(phase/(2*math.Pi)) - 1
 }
 
-func getSamples(notes []note, sampleRate float64, voiceCount float64, wave waveformFunc) []int16 {
-	var samples []int16
+func getSamples(notes []note, sampleRate float64, wave waveformFunc) []int {
+	var samples []int
 
 	// What happens when we just use i and reset it for each note is that
 	// when the note changes, it made a popping sound.
@@ -55,7 +55,7 @@ func getSamples(notes []note, sampleRate float64, voiceCount float64, wave wavef
 			phaseIncrement := 2.0 * math.Pi * currentFreq / sampleRate
 			// sample := int16(math.Sin(phase) * (32767 / voiceCount) * note.volume)
 			value := wave(phase)
-			sample := int16(value * (32767 / voiceCount) * note.volume)
+			sample := int(value * 32767 * note.volume)
 			samples = append(samples, sample)
 			phase += phaseIncrement
 
@@ -67,4 +67,31 @@ func getSamples(notes []note, sampleRate float64, voiceCount float64, wave wavef
 		}
 	}
 	return samples
+}
+
+func normalize(samples [][]int) []int16 {
+	var result []int16
+	mixed := make([]int, len(samples[0]))
+
+	for i := range mixed {
+		for _, track := range samples {
+			mixed[i] += track[i]
+		}
+	}
+
+	// Find max absolute sample
+	var maxAbs int
+	for _, s := range mixed {
+		if abs := int(math.Abs(float64(s))); abs > maxAbs {
+			maxAbs = abs
+		}
+	}
+
+	// Normalize to int16 range
+	for _, s := range mixed {
+		normalized := float64(s) / float64(maxAbs) * 32767
+		result = append(result, int16(normalized))
+	}
+
+	return result
 }
