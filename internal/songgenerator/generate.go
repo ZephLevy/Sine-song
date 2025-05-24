@@ -11,29 +11,37 @@ type note struct {
 }
 
 func GetSong(sampleRate float64) []int16 {
-	var samples []int16
+	var frequencies []int
 	func() {
 		freqs := chordProgression(sampleRate, 4)
-		samples = append(samples, normalize([][]int{freqs})...)
+		frequencies = append(frequencies, freqs...)
 
 	}()
 	func() {
 		background := chordProgression(sampleRate, 3)
 		mainLoop := mainLoops(sampleRate)
-		samples = append(samples, normalize([][]int{background, mainLoop})...)
+		for i := range mainLoop {
+			frequencies = append(frequencies, background[i]+mainLoop[i])
+		}
 
 	}()
 	func() {
 		background := chordProgression(sampleRate, 3)
 		mainLoop := mainLoops(sampleRate)
 		bass := bass(sampleRate)
-		sum := normalize([][]int{background, mainLoop, bass})
-		samples = append(samples, sum...)
+		for i := range mainLoop {
+			frequencies = append(frequencies, background[i]+mainLoop[i]+bass[i])
+		}
 	}()
 
-	// TODO: Resolve the song
+	func() {
+		frequencies = append(frequencies, endingProgression(sampleRate, 4)...)
+	}()
 
-	return samples
+	endingSilence := make([]int, int(sampleRate)*4)
+	frequencies = append(frequencies, endingSilence...)
+
+	return normalize([][]int{frequencies})
 }
 
 func lerpNote(lerpDuration float64, volume float64, noteStart string, noteEnd string) note {
@@ -175,22 +183,20 @@ func mainLoops(sampleRate float64) []int {
 }
 
 func bass(sampleRate float64) []int {
-	volume := 0.35
+	volume := 0.15
 	var notes []note
 
-	// For each chord root: include fifths, octaves, and approach tones
-	roots := []string{"C2", "Db2", "D2", "C#2"}
+	roots := []string{"C3", "Db3", "D3", "C#3"}
 	altNotes := [][]string{
-		{"G1", "C3", "Bb1"},  // for C
-		{"Ab1", "Db3", "B1"}, // for Db
-		{"A1", "D3", "C2"},   // for D
-		{"G#1", "F#3", "B1"}, // for C#
+		{"G2", "C4", "Bb2"},  // for C
+		{"Ab2", "Db4", "B2"}, // for Db
+		{"A2", "D4", "C3"},   // for D
+		{"G#2", "F#4", "B2"}, // for C#
 	}
 
 	for i, root := range roots {
 		alts := altNotes[i]
 
-		// 4s: mix root, 5th, octave, approach
 		notes = append(notes,
 			note{duration: 0.5, volume: volume, name: root},
 			note{duration: 0.5, volume: volume * 0.9, name: alts[0]},
@@ -209,4 +215,62 @@ func bass(sampleRate float64) []int {
 	}
 
 	return getSamples(notes, sampleRate, sawtoothWave)
+}
+
+func endingProgression(sampleRate float64, octave int) []int {
+	initialVolume := 0.5
+
+	n := func(name string) string {
+		return fmt.Sprintf("%s%d", name, octave)
+	}
+
+	// In the intro, each note lerps to the one closest to it.
+	// That's not the case here which creates a cool howling effect
+	voice1 := []note{
+		lerpNote(3, initialVolume, n("C#"), n("D")),
+		{duration: 4, volume: initialVolume, name: n("D")},
+		lerpNote(3, initialVolume, n("D"), n("G")),
+		{duration: 4, volume: initialVolume, name: n("G")},
+		lerpNote(3, initialVolume, n("G"), n("C")),
+		{duration: 4, volume: initialVolume, name: n("C")},
+	}
+
+	voice2 := []note{
+		lerpNote(3, initialVolume, n("F#"), n("F#")),
+		{duration: 4, volume: initialVolume, name: n("F#")},
+		lerpNote(3, initialVolume, n("F#"), n("B")),
+		{duration: 4, volume: initialVolume, name: n("B")},
+		lerpNote(3, initialVolume, n("B"), n("E")),
+		{duration: 4, volume: initialVolume, name: n("E")},
+	}
+
+	voice3 := []note{
+		lerpNote(3, initialVolume, n("F#"), n("A")),
+		{duration: 4, volume: initialVolume, name: n("A")},
+		lerpNote(3, initialVolume, n("A"), n("D")),
+		{duration: 4, volume: initialVolume, name: n("D")},
+		lerpNote(3, initialVolume, n("D"), n("G")),
+		{duration: 4, volume: initialVolume, name: n("G")},
+	}
+
+	voice4 := []note{
+		lerpNote(3, initialVolume, n("A#"), n("C")),
+		{duration: 4, volume: initialVolume, name: n("C")},
+		lerpNote(3, initialVolume, n("C"), n("F")),
+		{duration: 4, volume: initialVolume, name: n("F")},
+		lerpNote(3, initialVolume, n("F"), n("B")),
+		{duration: 4, volume: initialVolume, name: n("B")},
+	}
+
+	samples1 := getSamples(voice1, sampleRate, sineWave)
+	samples2 := getSamples(voice2, sampleRate, sineWave)
+	samples3 := getSamples(voice3, sampleRate, sineWave)
+	samples4 := getSamples(voice4, sampleRate, sineWave)
+
+	var samples []int
+	for i := range samples1 {
+		sample := samples1[i] + samples2[i] + samples3[i] + samples4[i]
+		samples = append(samples, sample)
+	}
+	return samples
 }
