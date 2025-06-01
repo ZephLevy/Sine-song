@@ -26,6 +26,8 @@ go.work.sum
 
 # Don't need to push this
 song.wav
-
+animated_fft.mp4
+animated_fft_with_audio.mp4
+venv/
 # I just adore macos
 .DS_Store
