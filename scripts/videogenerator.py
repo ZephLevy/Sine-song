@@ -1,6 +1,6 @@
 # This script, unlike the audio generator, is mostly *inspired* by various online examples
 # and resources. It works fine for its intended audio but it's probably sub-optimal otherwise.
-# I wouldn’t use it beyond that without further refinement.
+# I wouldn’t use it beyond that without further tweaking.
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile

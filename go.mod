@@ -1,3 +1,3 @@
-module github.com/ZephLevy/Sine-song
+module github.com/ZephLevy/The-Simplest-Song
 
 go 1.24.2

@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"os"
 
-	"github.com/ZephLevy/Sine-song/internal/songgenerator"
+	"github.com/ZephLevy/The-Simplest-Song/internal/songgenerator"
 )
 
 const (
